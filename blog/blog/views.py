@@ -1,6 +1,6 @@
 # Views controls the display of web pages
 
-from flask import render_template
+from flask import render_template, request, redirect, url_for
 
 from . import app
 from .database import session, Entry
@@ -34,3 +34,19 @@ def entries(page=1):     # Query the database entries of the blog
                            page=page,
                            total_pages=total_pages
                            )
+
+
+@app.route("/entry/add", methods=["GET"])  # Display the blog entry form
+def add_entry_get():
+    return render_template("add_entry.html")
+
+
+@app.route("/entry/add", methods=["POST"])  # Take entry form data and put in DB
+def add_entry_post():
+    entry = Entry(
+        title=request.form["title"],
+        content=request.form["content"],
+    )
+    session.add(entry)
+    session.commit()
+    return redirect(url_for("entries"))
