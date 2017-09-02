@@ -11,7 +11,14 @@ PAGINATE_BY = 10    # Number of entries per page
 
 @app.route("/") # Root (default) page to display when landing on web site
 @app.route("/page/<int:page>")  # Specific site page
-def entries(page=1):     # Query the database entries of the blog
+def entries(page=1):
+    """
+    Query the database entries of the blog.
+
+    :param page: The page number of the site.
+    :return: Template page with the number of entries specified, Next/Previous links, page number, and total number of
+    pages in the site
+    """
     # Zero-indexed page
     page_index = page - 1
 
@@ -36,17 +43,72 @@ def entries(page=1):     # Query the database entries of the blog
                            )
 
 
-@app.route("/entry/add", methods=["GET"])  # Display the blog entry form
+@app.route("/entry/add", methods=["GET"])
 def add_entry_get():
+    """Display the web form for a new blog entry"""
     return render_template("add_entry.html")
 
 
-@app.route("/entry/add", methods=["POST"])  # Take entry form data and put in DB
+@app.route("/entry/add", methods=["POST"])
 def add_entry_post():
+    """Take an entry form and put the data in the DB"""
     entry = Entry(
         title=request.form["title"],
         content=request.form["content"],
     )
-    session.add(entry)
-    session.commit()
+    session.add(entry)  # Stage entry for DB addition
+    session.commit()  # Add entry to DB
     return redirect(url_for("entries"))
+
+
+@app.route("/entry/<id>")
+def blog_entry(id):
+    """
+    Find a specific blog entry and display it.
+
+    :param id: Entry ID value
+    :return: Template page displaying the specified blog entry
+    """
+    entry = session.query(Entry).filter(Entry.id == id).one()  # Locate specific entry
+    return render_template("blog_entry.html", entry=entry)  # Show the entry
+
+
+@app.route("/entry/<id>/edit", methods=["GET"])
+def edit_post_get(id):
+    """
+    Find a specific entry for editing.
+
+    Uses the same functionality as general display utility.
+    :param id: Entry ID value
+    :return: Template page displaying the specified blog entry for modification
+    """
+    entry = session.query(Entry).filter(Entry.id == id).one()   # Locate specific entry
+    return render_template("edit_post.html", entry=entry)  # Show the entry
+
+
+@app.route("/entry/<id>/edit", methods=["POST"])
+def edit_post_put(id, title=None, content=None):
+    """
+    Modify an existing blog entry.
+
+    Having pulled the specific entry from the DB via GET call, uses POST call to update DB.
+    :param id: Entry ID value
+    :param title: Modified entry title
+    :param content: Modified entry content
+    :return: Default template page displaying all blog entries
+    """
+    entry = session.query(Entry).filter(Entry.id == id).one()  # Locate specific entry
+    entry.title = request.form['title'],  # Update title
+    entry.content = request.form["content"]  # Update entry content
+    session.add(entry)  # Add modified entry to database
+    session.commit()  # Update database
+    return redirect(url_for("entries"))  # Return to entries page
+
+
+@app.route("/entry/<id>/delete")
+def delete_entry(id):
+    """Delete an existing entry"""
+    entry = session.query(Entry).filter(Entry.id == id).one()  # Locate specific entry
+    session.delete(entry)  # Delete specified entry
+    session.commit()  # Update database
+    return redirect(url_for("entries"))  # Return to entries page
