@@ -9,7 +9,7 @@ from .database import session, Entry
 PAGINATE_BY = 10    # Number of entries per page
 
 
-@app.route("/") # Root (default) page to display when landing on web site
+@app.route("/")  # Root (default) page to display when landing on web site
 @app.route("/page/<int:page>")  # Specific site page
 def entries(page=1):
     """
@@ -20,6 +20,17 @@ def entries(page=1):
     pages in the site
     """
     # Zero-indexed page
+    default_entries = 10
+    max_entries = 50
+
+    try:
+        entry_limit = int(request.args.get('limit', default_entries))
+        print(entry_limit)
+        assert entry_limit > 0  # Ensure positive number
+        assert entry_limit <= max_entries  # Ensure entries don't exceed max value
+    except (ValueError, AssertionError):  # Use default value if number of entries doesn't meet expectations
+        entry_limit = default_entries
+
     page_index = page - 1
 
     count = session.query(Entry).count()
