@@ -1,9 +1,12 @@
 # Views controls the display of web pages
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, flash
+from flask_login import login_user, login_required
+
+from werkzeug.security import check_password_hash
 
 from . import app
-from .database import session, Entry
+from .database import session, Entry, User
 
 
 PAGINATE_BY = 10    # Number of entries per page
@@ -23,9 +26,9 @@ def entries(page=1):
     default_entries = 10
     max_entries = 50
 
+    # Set the number of entries displayed per page
     try:
-        entry_limit = int(request.args.get('limit', default_entries))
-        print(entry_limit)
+        entry_limit = int(request.args.get('limit', default_entries))  # Get the limit from HTML argument 'limit'
         assert entry_limit > 0  # Ensure positive number
         assert entry_limit <= max_entries  # Ensure entries don't exceed max value
     except (ValueError, AssertionError):  # Use default value if number of entries doesn't meet expectations
@@ -55,12 +58,14 @@ def entries(page=1):
 
 
 @app.route("/entry/add", methods=["GET"])
+@login_required  # Force authentication
 def add_entry_get():
     """Display the web form for a new blog entry"""
     return render_template("add_entry.html")
 
 
 @app.route("/entry/add", methods=["POST"])
+@login_required  # Force authentication
 def add_entry_post():
     """Take an entry form and put the data in the DB"""
     entry = Entry(
@@ -123,3 +128,23 @@ def delete_entry(id):
     session.delete(entry)  # Delete specified entry
     session.commit()  # Update database
     return redirect(url_for("entries"))  # Return to entries page
+
+
+@app.route("/login", methods=["GET"])
+def login_get():
+    """Display the login page"""
+    return render_template("login.html")
+
+
+@app.route("/login", methods=["POST"])
+def login_post():
+    """Check if user is in database"""
+    email = request.form["email"]
+    password = request.form["password"]
+    user = session.query(User).filter_by(email=email).first()
+    if not user or not check_password_hash(user.password, password):
+        flash("Incorrect username or password", "danger")
+        return redirect(url_for("login_get"))
+
+    login_user(user)
+    return redirect(request.args.get('next') or url_for("entries"))
