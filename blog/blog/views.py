@@ -1,7 +1,7 @@
 # Views controls the display of web pages
 
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_user, login_required
+from flask_login import login_user, login_required, current_user
 
 from werkzeug.security import check_password_hash
 
@@ -71,9 +71,10 @@ def add_entry_post():
     entry = Entry(
         title=request.form["title"],
         content=request.form["content"],
+        author=current_user
     )
-    session.add(entry)  # Stage entry for DB addition
-    session.commit()  # Add entry to DB
+    session.add(entry)
+    session.commit()
     return redirect(url_for("entries"))
 
 

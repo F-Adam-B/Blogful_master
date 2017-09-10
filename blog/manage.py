@@ -1,15 +1,25 @@
 import os
 
 from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 
 from blog import app
-from blog.database import session, Entry, User
+from blog.database import session, Entry, User, Base
 
 from getpass import getpass
 
 from werkzeug.security import generate_password_hash
 
+
+class DB(object):
+    def __init__(self, metadata):
+        self.metadata = metadata
+
+
 manager = Manager(app)
+migrate = Migrate(app, DB(Base.metadata))
+
+manager.add_command("db", MigrateCommand)
 
 
 # The function under the each manager.command decorator becomes an argument to the
