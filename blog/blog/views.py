@@ -1,7 +1,7 @@
 # Views controls the display of web pages
 
 from flask import render_template, request, redirect, url_for, flash
-from flask_login import login_user, login_required, current_user
+from flask_login import login_user, login_required, current_user, logout_user
 
 from werkzeug.security import check_password_hash
 
@@ -79,6 +79,7 @@ def add_entry_post():
 
 
 @app.route("/entry/<id>")
+@login_required  # Force authentication
 def blog_entry(id):
     """
     Find a specific blog entry and display it.
@@ -91,6 +92,7 @@ def blog_entry(id):
 
 
 @app.route("/entry/<id>/edit", methods=["GET"])
+@login_required  # Force authentication
 def edit_post_get(id):
     """
     Find a specific entry for editing.
@@ -104,6 +106,7 @@ def edit_post_get(id):
 
 
 @app.route("/entry/<id>/edit", methods=["POST"])
+@login_required  # Force authentication
 def edit_post_put(id, title=None, content=None):
     """
     Modify an existing blog entry.
@@ -123,6 +126,7 @@ def edit_post_put(id, title=None, content=None):
 
 
 @app.route("/entry/<id>/delete")
+@login_required  # Force authentication
 def delete_entry(id):
     """Delete an existing entry"""
     entry = session.query(Entry).filter(Entry.id == id).one()  # Locate specific entry
@@ -149,3 +153,11 @@ def login_post():
 
     login_user(user)
     return redirect(request.args.get('next') or url_for("entries"))
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("You have been logged out", "danger")
+    return redirect(url_for("login_get"))
