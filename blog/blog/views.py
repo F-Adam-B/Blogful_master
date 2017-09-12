@@ -158,6 +158,7 @@ def login_post():
 @app.route("/logout")
 @login_required
 def logout():
+    """Log user out of system"""
     logout_user()
     flash("You have been logged out", "danger")
     return redirect(url_for("login_get"))
