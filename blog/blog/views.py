@@ -14,6 +14,7 @@ PAGINATE_BY = 10    # Number of entries per page
 
 @app.route("/")  # Root (default) page to display when landing on web site
 @app.route("/page/<int:page>")  # Specific site page
+@login_required  # Force authentication
 def entries(page=1):
     """
     Query the database entries of the blog.
@@ -158,6 +159,7 @@ def login_post():
 @app.route("/logout")
 @login_required
 def logout():
+    """Log user out of system"""
     logout_user()
     flash("You have been logged out", "danger")
     return redirect(url_for("login_get"))
