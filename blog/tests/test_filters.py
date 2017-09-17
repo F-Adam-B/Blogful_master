@@ -4,7 +4,7 @@ import datetime
 
 # Configure your app to use the testing configuration
 if not "CONFIG_PATH" in os.environ:
-    os.environ["CONFIG_PATH"] = "blog.blog.config.TestingConfig"
+    os.environ["CONFIG_PATH"] = "blog.config.TestingConfig"
 
 from blog.blog.filters import *
 
