@@ -18,7 +18,7 @@ from blog.blog.database import Base, engine, session, User
 class TestViews(unittest.TestCase):
     def setUp(self):
         """ Test setup """
-        self.browser = Browser("chrome")
+        self.browser = Browser("phantomjs")
 
         # Set up the tables in the database
         Base.metadata.create_all(engine)
